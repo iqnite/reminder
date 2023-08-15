@@ -32,23 +32,28 @@ class ReminderApp (tk.Frame):
     def def_gui(self):
         self.remindersFrame = tk.LabelFrame(self, text="Active reminders")
         self.remindersBox = tk.Listbox(
-            self.remindersFrame, selectmode="single")
+            self.remindersFrame, selectmode="browse")
 
         self.optionsFrame = tk.Frame(self)
         self.addFrame = tk.LabelFrame(self.optionsFrame, text="Add reminder")
         self.addDayLabel = tk.LabelFrame(self.addFrame, text="Day")
-        self.addDayInput = tk.Entry(self.addDayLabel)
+        self.addDay = tk.StringVar(self.addDayLabel)
+        self.addDayInput = tk.Entry(self.addDayLabel, textvariable=self.addDay)
         self.addMonthLabel = tk.LabelFrame(self.addFrame, text="Month")
-        self.addMonthInput = tk.Entry(self.addMonthLabel)
+        self.addMonth = tk.StringVar(self.addMonthLabel)
+        self.addMonthInput = tk.Entry(self.addMonthLabel, textvariable=self.addMonth)
         self.addNameLabel = tk.LabelFrame(self.addFrame, text="Name")
-        self.addNameInput = tk.Entry(self.addNameLabel)
+        self.addName = tk.StringVar(self.addNameLabel)
+        self.addNameInput = tk.Entry(self.addNameLabel, textvariable=self.addName)
         self.addButton = tk.Button(
             self.addFrame, text="Add", command=self.add_to_list)
 
-        self.removeFrame = tk.LabelFrame(
-            self.optionsFrame, text="Remove selected reminder")
+        self.selectFrame = tk.LabelFrame(
+            self.optionsFrame, text="Selected reminder")
         self.removeButton = tk.Button(
-            self.removeFrame, text="Remove", command=self.remove_from_list)
+            self.selectFrame, text="Remove", command=self.remove_from_list)
+        self.copyButton = tk.Button(
+            self.selectFrame, text="Copy", command=self.copy)
 
         self.intervalFrame = tk.LabelFrame(
             self.optionsFrame, text="Notification")
@@ -65,7 +70,7 @@ class ReminderApp (tk.Frame):
         self.optionsFrame.pack(side="right", fill="both", expand=True)
 
         self.addFrame.pack(fill="both", expand=True)
-        self.removeFrame.pack(fill="both", expand=True)
+        self.selectFrame.pack(fill="both", expand=True)
         self.intervalFrame.pack(fill="both", expand=True)
 
         self.remindersBox.pack(fill="both", expand=True)
@@ -73,7 +78,8 @@ class ReminderApp (tk.Frame):
         self.addDayLabel.pack(side="top", fill="x", expand=True)
         self.addMonthLabel.pack(side="top", fill="x", expand=True)
         self.addButton.pack(side="bottom", fill="none", expand=True)
-        self.removeButton.pack(fill="none", expand=True)
+        self.removeButton.pack(fill="none", expand=True, side="left")
+        self.copyButton.pack(fill="none", expand=True, side="right")
         self.intervalInfo.pack(fill="both", expand=True)
         self.intervalInput.pack(fill="x", expand=True)
         self.intervalButton.pack(fill="none", expand=True)
@@ -83,14 +89,14 @@ class ReminderApp (tk.Frame):
         self.addNameInput.pack(fill="both", expand=True)
 
     def add_to_list(self):
-        name = self.addNameInput.get()
+        name = self.addName.get()
         if ("@" in name) or ('"' in name):
             showerror(title="Could not add reminder",
                       message="Name cannot contain the following characters: @ \".")
             return
         try:
-            day = int(self.addDayInput.get())
-            month = int(self.addMonthInput.get())
+            day = int(self.addDay.get())
+            month = int(self.addMonth.get())
         except:
             showerror(title="Could not add reminder", message="Invalid date.")
             return
@@ -98,7 +104,7 @@ class ReminderApp (tk.Frame):
                 or not day in range(1, 32, 1)
                 or ((month == 4 or month == 6 or month == 9 or month == 11) and day > 30)
                 or (month == 2 and day > 29)
-                ):
+            ):
             showerror(title="Could not add reminder", message="Invalid date.")
             return
         self.remindersBox.insert(1, f"{name} @ {day}. {month}")
@@ -107,6 +113,12 @@ class ReminderApp (tk.Frame):
     def remove_from_list(self):
         self.remindersBox.delete(self.remindersBox.curselection()[0])
         self.save()
+
+    def copy(self):
+        tp = self.get_date(self.remindersBox.get(self.remindersBox.curselection()[0]))
+        self.addName.set(tp["name"])
+        self.addDay.set(tp["day"])
+        self.addMonth.set(tp["month"])
 
     def save(self):
         with Config("profile_1.py") as xprofile:
@@ -139,16 +151,25 @@ class ReminderApp (tk.Frame):
                 showinfo(
                     title="Success", message="Settings saved and reminders checked successfully.")
 
+    @staticmethod
+    def get_date(item):
+        reminder_tuple = item.split("@")
+        name = reminder_tuple[0]
+        date_tuple = reminder_tuple[1].split(".")
+        day = date_tuple[0]
+        month = date_tuple[1]
+        return {
+            "name": name,
+            "day": day,
+            "month": month
+        }
+
     def compile(self):
         result = []
         for i in self.remindersBox.get(0, "end"):
-            reminder_tuple = i.split("@")
-            name = reminder_tuple[0]
-            date_tuple = reminder_tuple[1].split(".")
-            day = date_tuple[0]
-            month = date_tuple[1]
+            tp = self.get_date(i)
             result.append(
-                "{" + f'"name": "{name}", "day": "{day}", "month": "{month}"' + '},')
+                "{" + f'"name": "{tp["name"]}", "day": "{tp["day"]}", "month": "{tp["month"]}"' + '},')
         result_str = "REMINDERS = ["
         for j in result:
             result_str += j
