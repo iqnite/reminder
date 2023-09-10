@@ -169,7 +169,7 @@ class ReminderApp (tk.Frame):
         for i in self.remindersBox.get(0, "end"):
             tp = self.get_date(i)
             result.append(
-                "{" + f'"name": "{tp["name"]}", "day": "{tp["day"]}", "month": "{tp["month"]}"' + '},')
+                "{" + f'"name": "{tp["name"].strip(" ")}", "day": "{tp["day"]}", "month": "{tp["month"]}"' + '},')
         result_str = "REMINDERS = ["
         for j in result:
             result_str += j

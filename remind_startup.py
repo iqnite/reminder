@@ -4,35 +4,9 @@ Philipp D.
 Jul. 2023
 '''
 
-
+from module import *
 from datetime import datetime
-from tkinter.messagebox import showinfo
-
-
-def switch_year(year: int) -> bool:
-    if year % 4 == 0:
-        if not year % 100 == 0:
-            return True
-        else:
-            if year % 400 == 0:
-                return False
-            else:
-                return False
-    else:
-        return False
-
-
-def month_len(month: int, year: int = 1) -> int:
-    if not (month in range(1, 13, 1)):
-        raise ValueError
-    elif (month == 4 or month == 6 or month == 9 or month == 11):
-        return 30
-    elif (month == 2 and switch_year(year)):
-        return 29
-    elif month == 2:
-        return 28
-    else:
-        return 30
+from tkinter.messagebox import showinfo, showerror
 
 
 def days_remaining(day, month):
@@ -58,11 +32,14 @@ def time_remaining(day: int, month: int) -> int:
 
 
 def main():
-    import profile_1 as conf
-    for i in conf.REMINDERS:
-        if (d := days_remaining(i["day"], i["month"])) <= conf.INTERVAL and d >= 0:
-            showinfo(title="Reminder!",
-                     message=f"{i['name']} occurs in {d} days!")
-
+    try:
+        import profile_1 as conf
+        for i in conf.REMINDERS:
+            if (d := days_remaining(i["day"], i["month"])) <= conf.INTERVAL and d >= 0:
+                showinfo(title="Reminder!",
+                        message=f"{i['name']} occurs in {d} days!")
+    except FileNotFoundError: pass
+    except:
+        showerror(title="An error occurred", message="Reminders could not be checked. Try opening the Reminder app and saving the profile again.")
 
 main()
