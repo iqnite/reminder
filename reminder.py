@@ -193,9 +193,9 @@ class ReminderApp (tk.Frame):
             for i in conf.REMINDERS:
                 self.remindersBox.insert(
                     1, f"{i['name']} @ {int(i['day'])}. {int(i['month'])}")
-            self.intervalDays.set(conf.INTERVAL)
+            self.intervalDays.set(str(conf.INTERVAL))
         except:
-            self.intervalDays.set(1)
+            self.intervalDays.set(str(1))
 
 
 window = tk.Tk()
